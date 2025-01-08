@@ -1,0 +1,65 @@
+all:
+  vars:
+    ansible_port: 22
+    ansible_user: fessae
+    become_user: root
+    become_method: sudo
+    cluster: my-k8s
+  hosts:
+    ingress-01:
+      ansible_host: 10.3.123.100
+      ip: 10.3.123.100
+      access_ip: 10.3.123.100
+      node_labels:
+        node-role.kubernetes.io/ingress: ingress
+        topology.kubernetes.io/region: pve-cl1
+        topology.kubernetes.io/zone: pve01
+
+    master-01:
+      ansible_host: 10.3.123.11
+      ip: 10.3.123.11
+      access_ip: 10.3.123.11
+
+    worker-01:
+      ansible_host: 10.3.123.21
+      ip: 10.3.123.21
+      access_ip: 10.3.123.21
+      node_labels:
+        node-role.kubernetes.io/worker: worker
+        topology.kubernetes.io/region: pve-cl1
+        topology.kubernetes.io/zone: pve01
+
+    worker-02:
+      ansible_host: 10.3.123.22
+      ip: 10.3.123.22
+      access_ip: 10.3.123.22
+      node_labels:
+        node-role.kubernetes.io/worker: worker
+        topology.kubernetes.io/region: pve-cl1
+        topology.kubernetes.io/zone: pve01
+
+  children:
+    kube_control_plane:
+      hosts:
+        master-01:
+
+    etcd:
+      hosts:
+        master-01:
+
+    kube_node:
+      hosts:
+        worker-01:
+        worker-02:
+
+    kube_ingress:
+      hosts:
+        ingress-01:
+
+    k8s_cluster:
+      children:
+        kube_control_plane:
+        kube_node:
+        kube_ingress:
+    calico_rr:
+      hosts: {}
